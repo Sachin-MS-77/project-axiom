@@ -1,0 +1,55 @@
+# ── Python ──────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+.eggs/
+dist/
+build/
+
+# ── Virtual environments ─────────────────────────
+venv/
+.venv/
+env/
+.env/
+
+# ── Generated / runtime output ───────────────────
+# Keep REPORT_broken.json and REPORT_clean.json as sample data for the dashboard
+# but exclude the live auto-generated files that change every run
+report_data.js
+REPORT.md
+REPORT_broken.md
+REPORT_clean.md
+REPORT_selftest.md
+run1.md
+run2.md
+run1_clean.md
+run2_clean.md
+run1.json
+run2.json
+run1_jclean.json
+run2_jclean.json
+
+# ── Secrets / credentials ────────────────────────
+*.pem
+*.key
+*.p12
+.env
+.env.*
+secrets.py
+credentials.py
+
+# ── macOS ────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+
+# ── IDE / editors ────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

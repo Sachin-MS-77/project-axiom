@@ -1,0 +1,107 @@
+{
+  "metadata": {
+    "target": "axiom-clean-target",
+    "method": "docker",
+    "timestamp": "2026-08-14T06:22:05.643169+00:00",
+    "total_checks": 8,
+    "pass_count": 4,
+    "fail_count": 1,
+    "unknown_count": 3
+  },
+  "posture_strip": "\ud83d\udfe8\ud83d\udfe8\ud83d\udfe9\ud83d\udfe8\ud83d\udfe9\ud83d\udfe9\ud83d\udfe9\ud83d\udfe5",
+  "ceo_summary": "We checked 8 things on this server. 1 issue(s) were found, none of the most severe kind, but still worth fixing. 3 check(s) couldn't be automatically confirmed and need a human to look, rather than being guessed. See the prioritized fix list below for exact next steps.",
+  "self_audit": {
+    "rule_id": "axiom_self_privilege_check",
+    "verdict": "FAIL",
+    "evidence": "root",
+    "reason": "AXIOM's docker exec session is running as 'root'.",
+    "severity": "HIGH",
+    "status": "ok"
+  },
+  "verdicts": [
+    {
+      "rule_id": "ssh_root_login",
+      "verdict": "UNKNOWN",
+      "evidence": "",
+      "reason": "No PermitRootLogin line found in sshd_config output \u2014 setting may rely on an unstated default. Needs manual check.",
+      "severity": "HIGH",
+      "status": "ok"
+    },
+    {
+      "rule_id": "ssh_password_auth",
+      "verdict": "UNKNOWN",
+      "evidence": "",
+      "reason": "No PasswordAuthentication line found \u2014 setting may rely on an unstated default. Needs manual check.",
+      "severity": "MEDIUM",
+      "status": "ok"
+    },
+    {
+      "rule_id": "world_writable_files",
+      "verdict": "PASS",
+      "evidence": "",
+      "reason": "No world-writable files found under /etc.",
+      "severity": "HIGH",
+      "status": "ok"
+    },
+    {
+      "rule_id": "listening_ports",
+      "verdict": "UNKNOWN",
+      "evidence": "Netid State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess\n",
+      "reason": "Listening ports collected, but no automated pass/fail criteria defined for this check yet \u2014 needs manual review of the port list.",
+      "severity": "LOW",
+      "status": "ok"
+    },
+    {
+      "rule_id": "shadow_file_permissions",
+      "verdict": "PASS",
+      "evidence": "640 root shadow\n",
+      "reason": "/etc/shadow permissions are secure: '640 root shadow'.",
+      "severity": "HIGH",
+      "status": "ok"
+    },
+    {
+      "rule_id": "sudoers_nopasswd",
+      "verdict": "PASS",
+      "evidence": "",
+      "reason": "No NOPASSWD directives found in /etc/sudoers or /etc/sudoers.d/.",
+      "severity": "CRITICAL",
+      "status": "ok"
+    },
+    {
+      "rule_id": "empty_password_accounts",
+      "verdict": "PASS",
+      "evidence": "",
+      "reason": "No user accounts with empty password hashes found in /etc/shadow.",
+      "severity": "CRITICAL",
+      "status": "ok"
+    },
+    {
+      "rule_id": "outdated_packages",
+      "verdict": "FAIL",
+      "evidence": "1 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.\n",
+      "reason": "1 pending package update(s) found.",
+      "severity": "LOW",
+      "status": "ok"
+    }
+  ],
+  "priority_list": [
+    {
+      "rule_id": "outdated_packages",
+      "severity": "LOW",
+      "verdict": "FAIL",
+      "evidence": "1 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.\n",
+      "reason": "1 pending package update(s) found.",
+      "fix": "Apply security updates: apt-get update && apt-get upgrade -y."
+    }
+  ],
+  "receipts": {
+    "ssh_root_login": "3379531716",
+    "ssh_password_auth": "83c50b1640",
+    "world_writable_files": "1dc9ea2b3a",
+    "listening_ports": "6ef27c7e1d",
+    "shadow_file_permissions": "a93f611b1e",
+    "sudoers_nopasswd": "7456715763",
+    "empty_password_accounts": "2f94de5240",
+    "outdated_packages": "a8b13e47f7"
+  }
+}

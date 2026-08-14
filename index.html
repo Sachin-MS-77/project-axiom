@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PROJECT AXIOM — Security Audit Dashboard</title>
+  <meta name="description" content="Professional container security audit dashboard. Real-time PASS/FAIL/UNKNOWN verdict visualization with historical drift tracking."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <script src="report_data.js" onerror="window.AXIOM_AUTOLOAD=null;"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     UPLOAD OVERLAY
+══════════════════════════════════════════════ -->
+<div id="uploadOverlay">
+  <div class="upload-modal">
+    <div class="upload-logo">🛡️</div>
+    <h2>AXIOM</h2>
+    <p>Security Audit Dashboard — the latest scan auto-loads on open.<br/>Or upload a JSON report manually using <code style="font-family:monospace;font-size:0.8rem;background:rgba(0,212,255,0.08);padding:0.1rem 0.35rem;border-radius:3px;color:#00d4ff;">axiom.py --json</code>.</p>
+
+    <div class="drop-zone" id="dropZone">
+      <div class="drop-icon">📂</div>
+      <p>Drop REPORT.json here or click to browse</p>
+    </div>
+    <input type="file" id="jsonFileInput" accept=".json"/>
+
+    <div class="modal-divider">— or load a sample —</div>
+    <div class="sample-btns">
+      <button class="sample-btn" id="loadBrokenBtn">🔴 axiom-broken-target</button>
+      <button class="sample-btn" id="loadCleanBtn">🟢 axiom-clean-target</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════════ -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-shield">
+        <svg viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 3L5 10v11c0 9.5 6.8 18.4 16 21 9.2-2.6 16-11.5 16-21V10L21 3z"
+            fill="rgba(0,212,255,0.08)" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+          <path d="M14 21l5 5 9-9" stroke="#00d4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="logo-text-block">
+        <div class="logo-name">AXIOM</div>
+        <div class="logo-tagline">Security Scanner v2.0</div>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <div class="status-indicator">
+        <span class="status-dot"></span>
+        <span id="headerStatus">NO SCAN LOADED</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-ghost" id="clearHistoryBtn">↺ Clear History</button>
+      <button class="btn btn-primary" id="loadFileBtn">⊕ Load Report</button>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════
+     MAIN
+══════════════════════════════════════════════ -->
+<main class="main">
+
+  <!-- ── Target Bar ── -->
+  <div class="target-bar">
+    <span class="target-bar-label">Target</span>
+    <span class="target-badge">
+      <span class="target-dot"></span>
+      <span id="targetBadge">—</span>
+    </span>
+    <span class="target-bar-meta" id="targetMeta">No scan loaded</span>
+  </div>
+
+  <!-- ── Mini Metric Cards ── -->
+  <div class="mini-metrics">
+    <div class="mini-card total">
+      <div class="mini-icon">🔬</div>
+      <div class="mini-label">Total Checks</div>
+      <div class="mini-value" id="metricTotal">—</div>
+      <div class="mini-sub">rules evaluated</div>
+    </div>
+    <div class="mini-card pass">
+      <div class="mini-icon">✓</div>
+      <div class="mini-label">PASS</div>
+      <div class="mini-value" id="metricPass">—</div>
+      <div class="mini-sub">compliant</div>
+    </div>
+    <div class="mini-card fail">
+      <div class="mini-icon">✗</div>
+      <div class="mini-label">FAIL</div>
+      <div class="mini-value" id="metricFail">—</div>
+      <div class="mini-sub">need remediation</div>
+    </div>
+    <div class="mini-card unknown">
+      <div class="mini-icon">?</div>
+      <div class="mini-label">UNKNOWN</div>
+      <div class="mini-value" id="metricUnknown">—</div>
+      <div class="mini-sub">manual review</div>
+    </div>
+  </div>
+
+  <!-- ── Top Section: Ring Chart + Posture/Summary ── -->
+  <div class="top-section">
+
+    <!-- Ring Chart -->
+    <div class="ring-card">
+      <div class="ring-chart-wrap">
+        <canvas id="ringChart"></canvas>
+        <div class="ring-center">
+          <div class="ring-center-number" id="ringCenterNum">—</div>
+          <div class="ring-center-label">CHECKS</div>
+        </div>
+      </div>
+      <div class="ring-legend">
+        <div class="ring-legend-item pass">
+          <div class="ring-legend-left"><div class="ring-legend-dot"></div> PASS</div>
+          <div class="ring-legend-val" id="legendPass">—</div>
+        </div>
+        <div class="ring-legend-item fail">
+          <div class="ring-legend-left"><div class="ring-legend-dot"></div> FAIL</div>
+          <div class="ring-legend-val" id="legendFail">—</div>
+        </div>
+        <div class="ring-legend-item unknown">
+          <div class="ring-legend-left"><div class="ring-legend-dot"></div> UNKNOWN</div>
+          <div class="ring-legend-val" id="legendUnknown">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="right-panel">
+      <!-- Posture -->
+      <div class="card">
+        <div class="card-title">Posture at a Glance</div>
+        <div class="posture-row">
+          <div class="posture-strip" id="postureStrip">—</div>
+          <div class="posture-meta">
+            <div class="posture-legend-item">🟥 FAIL</div>
+            <div class="posture-legend-item">🟩 PASS</div>
+            <div class="posture-legend-item">🟨 UNKNOWN</div>
+          </div>
+        </div>
+        <div id="selfAuditChip" class="self-audit-chip UNKNOWN" style="margin-top:0.75rem;">
+          ? SELF-AUDIT: loading...
+        </div>
+      </div>
+      <!-- Summary -->
+      <div class="card" style="flex:1;">
+        <div class="card-title">Plain English Summary</div>
+        <p class="ceo-text" id="ceoSummary">Load a scan report to see the executive summary.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Trend Chart ── -->
+  <div class="trend-section">
+    <div class="card">
+      <div class="card-title">Historical Drift — FAIL / PASS / UNKNOWN Over Time</div>
+      <div id="trendContainer">
+        <div class="no-history">📈 Load 2+ scan results to see the historical trend</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Verdict Table ── -->
+  <div class="table-section">
+    <div class="card">
+      <div class="card-title">All Checks — Verdict Table</div>
+      <div class="table-controls">
+        <input class="search-box" id="searchInput" type="text" placeholder="Search rule, verdict, reason…"/>
+        <div class="filter-pills">
+          <button class="pill active-all" data-filter="ALL">All</button>
+          <button class="pill" data-filter="PASS">PASS</button>
+          <button class="pill" data-filter="FAIL">FAIL</button>
+          <button class="pill" data-filter="UNKNOWN">???</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Rule ID</th>
+              <th>Verdict</th>
+              <th>Severity</th>
+              <th>Reason</th>
+              <th>Evidence</th>
+              <th>Receipt</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="verdictTbody">
+            <tr><td colspan="7"><div class="empty-state"><div class="emoji">🛡️</div><div>Load a scan report to view verdicts.</div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Priority Fix List ── -->
+  <div class="priority-section">
+    <div class="card">
+      <div class="card-title">Prioritized Remediation Actions</div>
+      <div id="priorityList">
+        <div class="empty-state"><div class="emoji">🛡️</div><div>Load a scan report to view remediation actions.</div></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script src="dashboard.js"></script>
+</body>
+</html>
